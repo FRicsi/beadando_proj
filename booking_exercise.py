@@ -17,6 +17,7 @@
 # #   xx Töltsd fel az futtatás után a rendszert 1 szállodával, 3 szobával és 5 foglalással, mielőtt a felhasználói adatbekérés megjelenik. (10 pont)
 
 from datetime import datetime
+import winsound
 
 # Osztályok Létrehozása
 
@@ -62,14 +63,14 @@ class Szalloda:
     def fgs(self, szobsz, datum):
         for fgs in self.fgs_ok:
             if fgs.szoba.szobsz == szobsz and fgs.datum == datum:
-                print("\nA szoba már foglalt ezen a napon. \nVálasszon másik szobát vagy másik dátumot.")
+                print("\nA szoba már foglalt ezen a napon. \nVálasszon másik szobát vagy másik dátumot!")
                 return
         for szoba in self.szobak:
             if szoba.szobsz == szobsz:
                 self.fgs_ok.append(Foglalas(szoba, datum))
                 print("Sikeres foglalás!")
                 return szoba.ar
-        print("A megadott szobaszám nem létezik a szállodában.")
+        print("\nA megadott szobaszám nem létezik a szállodában.")
 
     def lmond(self, szobsz, datum):
         for fgs in self.fgs_ok:
@@ -100,57 +101,60 @@ hotel.fgs("102", datetime(2024, 5, 15))
 # Felhasználói interfész
 while True:
 
-    print("Szobák száma:")
-    print(len(hotel.szobak))
-    print("Egyágyas szobák:")
-    for szoba in hotel.szobak:
-        if isinstance(szoba, EgyagyasSzoba):
-            print(f"Szobaszám: {szoba.szobsz}, Ár: {szoba.ar} Ft, (Fürdő: {szoba.bath})")
-    print("\nKétágyas szobák:")
-    for szoba in hotel.szobak:
-        if isinstance(szoba, KetagyasSzoba):
-            print(f"Szobaszám: {szoba.szobsz}, Ár: {szoba.ar} Ft, (Extra: {szoba.extra})")
-    print("\nJelenlegi foglalások:")
-    for fgs in hotel.fgs_ok:
-        print(f"Szoba: {fgs.szoba.szobsz}, Időpont: {fgs.datum}, ")
-
     print("\nVálassz műveletet:")
     print("1. Szoba foglalása")
     print("2. Foglalás lemondása")
     print("3. Foglalások listázása")
-    print("4. Kilépés")
-    case = input("Művelet kiválasztása (1/2/3/4): ")
+    print("4. Szobák listázása")
+    print("5. Kilépés")
+    case = input("Művelet kiválasztása (1/2/3/4/5): ")
 
     if case == "1":
-        szobsz = input("Add meg a foglalandó szoba számát: ")
+        szobsz = input("\nAdd meg a foglalandó szoba számát: ")
         datum = input("Add meg a foglalás dátumát (ÉÉÉÉ-HH-NN, jelenleg csak egy napra lehetséges a foglalás): ")
         try:
             datum = datetime.strptime(datum, "%Y-%m-%d")
             if datum < datetime.now():
-                print("Hibás dátum! A foglalás csak jövőbeni időpontra lehetséges.")
+                print("\nHibás dátum! A foglalás csak jövőbeni időpontra lehetséges.")
+                winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
             else:
                 ar = hotel.fgs(szobsz, datum)
                 if ar:
                     print(f"A foglalás sikeres! Az ár: {ar} Ft")
                 else:
-                    print("Hibás szobaszám!")
+                    print("\nHibás szobaszám!")
+                    winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
         except ValueError:
-            print("Hibás dátum formátum!")
+            print("\nHibás dátum formátum!")
     elif case == "2":
-        szobsz = input("Add meg a lemondandó foglalás szoba számát: ")
+        szobsz = input("\nAdd meg a lemondandó foglalás szoba számát: ")
         datum = input("Add meg a lemondandó foglalás dátumát (ÉÉÉÉ-HH-NN): ")
         try:
             datum = datetime.strptime(datum, "%Y-%m-%d")
             siker = hotel.lmond(szobsz, datum)
             if siker:
-                print("A foglalás sikeresen lemondva.")
+                print("\nA foglalás sikeresen lemondva.")
             else:
-                print("Nincs ilyen foglalás.")
+                print("\nNincs ilyen foglalás.")
+                winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
         except ValueError:
-            print("Hibás dátum formátum!")
+            print("\nHibás dátum formátum!")
+            winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
     elif case == "3":
         hotel.list_fgs_ok()
     elif case == "4":
+            print("Szobák száma:")
+            print(len(hotel.szobak))
+            print("Egyágyas szobák:")
+            for szoba in hotel.szobak:
+                if isinstance(szoba, EgyagyasSzoba):
+                    print(f"Szobaszám: {szoba.szobsz}, Ár: {szoba.ar} Ft, (Fürdő: {szoba.bath})")
+            print("\nKétágyas szobák:")
+            for szoba in hotel.szobak:
+                if isinstance(szoba, KetagyasSzoba):
+                    print(f"Szobaszám: {szoba.szobsz}, Ár: {szoba.ar} Ft, (Extra: {szoba.extra})")
+    elif case == "5":
         break
     else:
-        print("Hibás választás!")
+        print("\nHibás választás!")
+        winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
