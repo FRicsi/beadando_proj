@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkcalendar import Calendar
 from datetime import datetime
+import winsound
 
 class Szoba:
     def __init__(self, szobsz, ar):
@@ -9,12 +10,14 @@ class Szoba:
         self.ar = ar
 
 class EgyagyasSzoba(Szoba):
-    def __init__(self, szobsz):
-        super().__init__(szobsz, 5000)
+    def __init__(self, szobsz, bath):
+        super().__init__(szobsz, 70000)
+        self.bath = bath
 
 class KetagyasSzoba(Szoba):
-    def __init__(self, szobsz):
-        super().__init__(szobsz, 8000)
+    def __init__(self, szobsz, extra):
+        super().__init__(szobsz, 90000)
+        self.extra = extra
 
 class Foglalas:
     def __init__(self, szoba, datum):
@@ -25,105 +28,123 @@ class Szalloda:
     def __init__(self, nev):
         self.nev = nev
         self.szobak = []
-        self.fgl_ok = []
+        self.fgs_ok = []
 
     def add_szoba(self, szoba):
         self.szobak.append(szoba)
 
-    def fgls(self, szobsz, datum):
+    def fgs(self, szobsz, datum):
+        for fgs in self.fgs_ok:
+            if fgs.szoba.szobsz == szobsz and fgs.datum == datum:
+                return False
         for szoba in self.szobak:
             if szoba.szobsz == szobsz:
-                fgls = fgls(szoba, datum)
-                self.fgl_ok.append(fgls)
+                self.fgs_ok.append(Foglalas(szoba, datum))
                 return szoba.ar
-        return None
+        return False
 
-    def lemond(self, szobsz, datum):
-        for fgls in self.fgl_ok:
-            if fgls.szoba.szobsz == szobsz and fgls.datum == datum:
-                self.fgl_ok.remove(fgls)
+    def lmond(self, szobsz, datum):
+        for fgs in self.fgs_ok:
+            if fgs.szoba.szobsz == szobsz and fgs.datum == datum:
+                self.fgs_ok.remove(fgs)
                 return True
         return False
 
-    def listaz_fgl_ok(self):
-        fgl_ok_str = ""
-        for fgls in self.fgl_ok:
-            fgl_ok_str += f"Szoba: {fgls.szoba.szobsz}, Dátum: {fgls.datum}\n"
-        return fgl_ok_str
+    def list_fgs_ok(self):
+        return [f"Szoba: {fgs.szoba.szobsz}, Időpont: {fgs.datum}" for fgs in self.fgs_ok]
 
-def fgls_gomb_click():
+def foglalas_clicked():
     szobsz = szobsz_entry.get()
-    datum = datum_cal.selection_get()
-    if datum:
-        ar = hotel.fgls(szobsz, datum)
-        if ar:
-            messagebox.showinfo("Sikeres foglalás", f"A foglalás sikeres! Az ár: {ar} Ft")
+    datum_str = datum_entry.get()
+    try:
+        datum = datetime.strptime(datum_str, "%Y-%m-%d")
+        if datum < datetime.now():
+            status_label.config(text="Hibás dátum! A foglalás csak jövőbeni időpontra lehetséges.")
+            winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
         else:
-            messagebox.showerror("Hiba", "Hibás szobaszám!")
-    else:
-        messagebox.showerror("Hiba", "Válassz egy dátumot!")
+            ar = hotel.fgs(szobsz, datum)
+            if ar:
+                status_label.config(text=f"A foglalás sikeres! Az ár: {ar} Ft")
+            else:
+                status_label.config(text="Hibás szobaszám!")
+                winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
+    except ValueError:
+        status_label.config(text="Hibás dátum formátum!")
+        winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
 
-def lemond_gomb_click():
-    szobsz = szobsz_lemond_entry.get()
-    datum = datum_lemond_cal.selection_get()
-    if datum:
-        sikeres = hotel.lemond(szobsz, datum)
-        if sikeres:
-            messagebox.showinfo("Sikeres lemondás", "A foglalás sikeresen lemondva.")
+def lemondas_clicked():
+    szobsz = szobsz_lemondas_entry.get()
+    datum_str = datum_lemondas_entry.get()
+    try:
+        datum = datetime.strptime(datum_str, "%Y-%m-%d")
+        if hotel.lmond(szobsz, datum):
+            status_label.config(text="A foglalás sikeresen lemondva.")
         else:
-            messagebox.showerror("Hiba", "Nincs ilyen foglalás.")
-    else:
-        messagebox.showerror("Hiba", "Válassz egy dátumot!")
+            status_label.config(text="Nincs ilyen foglalás.")
+            winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
+    except ValueError:
+        status_label.config(text="Hibás dátum formátum!")
+        winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
 
-def listaz_gomb_click():
-    fgl_ok = hotel.listaz_fgl_ok()
-    if fgl_ok:
-        messagebox.showinfo("Foglalások listája", fgl_ok)
-    else:
-        messagebox.showinfo("Foglalások listája", "Nincs foglalás")
+def listaz_clicked():
+    foglalas_listbox.delete(0, END)
+    for item in hotel.list_fgs_ok():
+        foglalas_listbox.insert(END, item)
 
-# Szalloda létrehozása
+# Rendszer feltöltés: Szalloda létrehozása
 hotel = Szalloda("Pihenő Hotel")
-hotel.add_szoba(EgyagyasSzoba("101"))
-hotel.add_szoba(EgyagyasSzoba("102"))
-hotel.add_szoba(KetagyasSzoba("201"))
 
-# Tkinter ablak létrehozása
-ablak = Tk()
-ablak.title("Szobafoglalás")
+# Rendszer feltöltés: Szobák hozzáadása
+hotel.add_szoba(EgyagyasSzoba("101", "Kád"))
+hotel.add_szoba(EgyagyasSzoba("102", "Zuhany"))
+hotel.add_szoba(KetagyasSzoba("201", "Jacuzzi"))
 
-# Foglalás rész
-fgls_frame = LabelFrame(ablak, text="Foglalás")
-fgls_frame.grid(row=0, column=0, padx=10, pady=10)
+# GUI létrehozása
+root = Tk()
+root.title("Szobafoglalás")
 
-Label(fgls_frame, text="Szobaszám:").grid(row=0, column=0)
-szobsz_entry = Entry(fgls_frame)
-szobsz_entry.grid(row=0, column=1)
+foglalas_frame = LabelFrame(root, text="Foglalás")
+foglalas_frame.grid(row=0, column=0, padx=10, pady=10)
 
-Label(fgls_frame, text="Dátum:").grid(row=1, column=0)
-datum_cal = Calendar(fgls_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
-datum_cal.grid(row=1, column=1)
+szobsz_label = Label(foglalas_frame, text="Szobaszám:")
+szobsz_label.grid(row=0, column=0, padx=5, pady=5)
+szobsz_entry = Entry(foglalas_frame)
+szobsz_entry.grid(row=0, column=1, padx=5, pady=5)
 
-fgls_gomb = Button(fgls_frame, text="Foglalás", command=fgls_gomb_click)
-fgls_gomb.grid(row=2, column=0, columnspan=2, pady=5)
+datum_label = Label(foglalas_frame, text="Dátum (ÉÉÉÉ-HH-NN):")
+datum_label.grid(row=1, column=0, padx=5, pady=5)
+datum_entry = Entry(foglalas_frame)
+datum_entry.grid(row=1, column=1, padx=5, pady=5)
 
-# Lemondás rész
-lemond_frame = LabelFrame(ablak, text="Lemondás")
-lemond_frame.grid(row=0, column=1, padx=10, pady=10)
+foglalas_button = Button(foglalas_frame, text="Foglalás", command=foglalas_clicked)
+foglalas_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
-Label(lemond_frame, text="Szobaszám:").grid(row=0, column=0)
-szobsz_lemond_entry = Entry(lemond_frame)
-szobsz_lemond_entry.grid(row=0, column=1)
+lemondas_frame = LabelFrame(root, text="Lemondás")
+lemondas_frame.grid(row=0, column=1, padx=10, pady=10)
 
-Label(lemond_frame, text="Dátum:").grid(row=1, column=0)
-datum_lemond_cal = Calendar(lemond_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
-datum_lemond_cal.grid(row=1, column=1)
+szobsz_lemondas_label = Label(lemondas_frame, text="Szobaszám:")
+szobsz_lemondas_label.grid(row=0, column=0, padx=5, pady=5)
+szobsz_lemondas_entry = Entry(lemondas_frame)
+szobsz_lemondas_entry.grid(row=0, column=1, padx=5, pady=5)
 
-lemond_gomb = Button(lemond_frame, text="Lemondás", command=lemond_gomb_click)
-lemond_gomb.grid(row=2, column=0, columnspan=2, pady=5)
+datum_lemondas_label = Label(lemondas_frame, text="Dátum (ÉÉÉÉ-HH-NN):")
+datum_lemondas_label.grid(row=1, column=0, padx=5, pady=5)
+datum_lemondas_entry = Entry(lemondas_frame)
+datum_lemondas_entry.grid(row=1, column=1, padx=5, pady=5)
 
-# Foglalások listázása rész
-listaz_gomb = Button(ablak, text="Foglalások listázása", command=listaz_gomb_click)
-listaz_gomb.grid(row=1, column=0, columnspan=2, pady=10)
+lemondas_button = Button(lemondas_frame, text="Lemondás", command=lemondas_clicked)
+lemondas_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
-ablak.mainloop()
+foglalasok_frame = LabelFrame(root, text="Foglalások")
+foglalasok_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+
+foglalas_listbox = Listbox(foglalasok_frame, width=50)
+foglalas_listbox.grid(row=0, column=0, padx=5, pady=5)
+
+listaz_button = Button(foglalasok_frame, text="Foglalások listázása", command=listaz_clicked)
+listaz_button.grid(row=1, column=0, padx=5, pady=5)
+
+status_label = Label(root, text="")
+status_label.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+root.mainloop()
