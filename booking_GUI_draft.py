@@ -4,17 +4,17 @@ from tkcalendar import Calendar
 from datetime import datetime
 
 class Szoba:
-    def __init__(self, szobaszam, ar):
-        self.szobaszam = szobaszam
+    def __init__(self, szobsz, ar):
+        self.szobsz = szobsz
         self.ar = ar
 
 class EgyagyasSzoba(Szoba):
-    def __init__(self, szobaszam):
-        super().__init__(szobaszam, 5000)
+    def __init__(self, szobsz):
+        super().__init__(szobsz, 5000)
 
 class KetagyasSzoba(Szoba):
-    def __init__(self, szobaszam):
-        super().__init__(szobaszam, 8000)
+    def __init__(self, szobsz):
+        super().__init__(szobsz, 8000)
 
 class Foglalas:
     def __init__(self, szoba, datum):
@@ -25,37 +25,37 @@ class Szalloda:
     def __init__(self, nev):
         self.nev = nev
         self.szobak = []
-        self.foglalasok = []
+        self.fgl_ok = []
 
     def add_szoba(self, szoba):
         self.szobak.append(szoba)
 
-    def foglalas(self, szobaszam, datum):
+    def fgls(self, szobsz, datum):
         for szoba in self.szobak:
-            if szoba.szobaszam == szobaszam:
-                foglalas = Foglalas(szoba, datum)
-                self.foglalasok.append(foglalas)
+            if szoba.szobsz == szobsz:
+                fgls = fgls(szoba, datum)
+                self.fgl_ok.append(fgls)
                 return szoba.ar
         return None
 
-    def lemondas(self, szobaszam, datum):
-        for foglalas in self.foglalasok:
-            if foglalas.szoba.szobaszam == szobaszam and foglalas.datum == datum:
-                self.foglalasok.remove(foglalas)
+    def lemond(self, szobsz, datum):
+        for fgls in self.fgl_ok:
+            if fgls.szoba.szobsz == szobsz and fgls.datum == datum:
+                self.fgl_ok.remove(fgls)
                 return True
         return False
 
-    def listaz_foglalasok(self):
-        foglalasok_str = ""
-        for foglalas in self.foglalasok:
-            foglalasok_str += f"Szoba: {foglalas.szoba.szobaszam}, Dátum: {foglalas.datum}\n"
-        return foglalasok_str
+    def listaz_fgl_ok(self):
+        fgl_ok_str = ""
+        for fgls in self.fgl_ok:
+            fgl_ok_str += f"Szoba: {fgls.szoba.szobsz}, Dátum: {fgls.datum}\n"
+        return fgl_ok_str
 
-def foglalas_gomb_click():
-    szobaszam = szobaszam_entry.get()
+def fgls_gomb_click():
+    szobsz = szobsz_entry.get()
     datum = datum_cal.selection_get()
     if datum:
-        ar = hotel.foglalas(szobaszam, datum)
+        ar = hotel.fgls(szobsz, datum)
         if ar:
             messagebox.showinfo("Sikeres foglalás", f"A foglalás sikeres! Az ár: {ar} Ft")
         else:
@@ -63,11 +63,11 @@ def foglalas_gomb_click():
     else:
         messagebox.showerror("Hiba", "Válassz egy dátumot!")
 
-def lemondas_gomb_click():
-    szobaszam = szobaszam_lemondas_entry.get()
-    datum = datum_lemondas_cal.selection_get()
+def lemond_gomb_click():
+    szobsz = szobsz_lemond_entry.get()
+    datum = datum_lemond_cal.selection_get()
     if datum:
-        sikeres = hotel.lemondas(szobaszam, datum)
+        sikeres = hotel.lemond(szobsz, datum)
         if sikeres:
             messagebox.showinfo("Sikeres lemondás", "A foglalás sikeresen lemondva.")
         else:
@@ -76,9 +76,9 @@ def lemondas_gomb_click():
         messagebox.showerror("Hiba", "Válassz egy dátumot!")
 
 def listaz_gomb_click():
-    foglalasok = hotel.listaz_foglalasok()
-    if foglalasok:
-        messagebox.showinfo("Foglalások listája", foglalasok)
+    fgl_ok = hotel.listaz_fgl_ok()
+    if fgl_ok:
+        messagebox.showinfo("Foglalások listája", fgl_ok)
     else:
         messagebox.showinfo("Foglalások listája", "Nincs foglalás")
 
@@ -93,34 +93,34 @@ ablak = Tk()
 ablak.title("Szobafoglalás")
 
 # Foglalás rész
-foglalas_frame = LabelFrame(ablak, text="Foglalás")
-foglalas_frame.grid(row=0, column=0, padx=10, pady=10)
+fgls_frame = LabelFrame(ablak, text="Foglalás")
+fgls_frame.grid(row=0, column=0, padx=10, pady=10)
 
-Label(foglalas_frame, text="Szobaszám:").grid(row=0, column=0)
-szobaszam_entry = Entry(foglalas_frame)
-szobaszam_entry.grid(row=0, column=1)
+Label(fgls_frame, text="Szobaszám:").grid(row=0, column=0)
+szobsz_entry = Entry(fgls_frame)
+szobsz_entry.grid(row=0, column=1)
 
-Label(foglalas_frame, text="Dátum:").grid(row=1, column=0)
-datum_cal = Calendar(foglalas_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+Label(fgls_frame, text="Dátum:").grid(row=1, column=0)
+datum_cal = Calendar(fgls_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
 datum_cal.grid(row=1, column=1)
 
-foglalas_gomb = Button(foglalas_frame, text="Foglalás", command=foglalas_gomb_click)
-foglalas_gomb.grid(row=2, column=0, columnspan=2, pady=5)
+fgls_gomb = Button(fgls_frame, text="Foglalás", command=fgls_gomb_click)
+fgls_gomb.grid(row=2, column=0, columnspan=2, pady=5)
 
 # Lemondás rész
-lemondas_frame = LabelFrame(ablak, text="Lemondás")
-lemondas_frame.grid(row=0, column=1, padx=10, pady=10)
+lemond_frame = LabelFrame(ablak, text="Lemondás")
+lemond_frame.grid(row=0, column=1, padx=10, pady=10)
 
-Label(lemondas_frame, text="Szobaszám:").grid(row=0, column=0)
-szobaszam_lemondas_entry = Entry(lemondas_frame)
-szobaszam_lemondas_entry.grid(row=0, column=1)
+Label(lemond_frame, text="Szobaszám:").grid(row=0, column=0)
+szobsz_lemond_entry = Entry(lemond_frame)
+szobsz_lemond_entry.grid(row=0, column=1)
 
-Label(lemondas_frame, text="Dátum:").grid(row=1, column=0)
-datum_lemondas_cal = Calendar(lemondas_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
-datum_lemondas_cal.grid(row=1, column=1)
+Label(lemond_frame, text="Dátum:").grid(row=1, column=0)
+datum_lemond_cal = Calendar(lemond_frame, selectmode="day", year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+datum_lemond_cal.grid(row=1, column=1)
 
-lemondas_gomb = Button(lemondas_frame, text="Lemondás", command=lemondas_gomb_click)
-lemondas_gomb.grid(row=2, column=0, columnspan=2, pady=5)
+lemond_gomb = Button(lemond_frame, text="Lemondás", command=lemond_gomb_click)
+lemond_gomb.grid(row=2, column=0, columnspan=2, pady=5)
 
 # Foglalások listázása rész
 listaz_gomb = Button(ablak, text="Foglalások listázása", command=listaz_gomb_click)
