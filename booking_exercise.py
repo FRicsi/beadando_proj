@@ -15,3 +15,16 @@
 #   A foglalás létrehozásakor ellenőrizd, hogy a dátum érvényes (jövőbeni) és a szoba elérhető-e akkor. (10 pont)
 #   Biztosítsd, hogy a lemondások csak létező foglalásokra lehetségesek. (5 pont)
 # #   Töltsd fel az futtatás után a rendszert 1 szállodával, 3 szobával és 5 foglalással, mielőtt a felhasználói adatbekérés megjelenik. (10 pont)
+
+class Szoba:
+    def __init__(self, szobaszam, ar):
+        self.szobaszam = szobaszam
+        self.ar = ar
+
+class EgyagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(szobaszam, 25000)
+
+class KetagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(szobaszam, 35000)
