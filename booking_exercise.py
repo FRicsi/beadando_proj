@@ -51,14 +51,26 @@ class Szalloda:
     def add_szoba(self, szoba):
         self.szobak.append(szoba)
 
+    # def fgs(self, szobsz, datum):
+    #     for szoba in self.szobak:
+    #         if szoba.szobsz == szobsz:
+    #             fgs = Foglalas(szoba, datum)
+    #             self.fgs_ok.append(fgs)
+    #             return szoba.ar
+    #     return None
+    
     def fgs(self, szobsz, datum):
+        for fgs in self.fgs_ok:
+            if fgs.szoba.szobsz == szobsz and fgs.datum == datum:
+                print("\nA szoba már foglalt ezen a napon. \nVálasszon másik szobát vagy másik dátumot.")
+                return
         for szoba in self.szobak:
             if szoba.szobsz == szobsz:
-                fgs = Foglalas(szoba, datum)
-                self.fgs_ok.append(fgs)
+                self.fgs_ok.append(Foglalas(szoba, datum))
+                print("Sikeres foglalás!")
                 return szoba.ar
-        return None
-    
+        print("A megadott szobaszám nem létezik a szállodában.")
+
     def lmond(self, szobsz, datum):
         for fgs in self.fgs_ok:
             if fgs.szoba.szobsz == szobsz and fgs.datum == datum:
